@@ -50,7 +50,7 @@ static const char* request_domoticz(string id) {
     return response_string.c_str();
   }
   cerr << "Error initializing curl for Netatmo" << endl;
-  return NULL;
+  return "Error";
 }
 
 static const char* request_netatmo() {
@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
   signal(SIGTERM, InterruptHandler);
   signal(SIGINT, InterruptHandler);
 
-  printf("CTRL-C for exit.\n");
+  cout << "CTRL-C for exit" << endl;
 
   const char* json = request_netatmo();;
   if (json == NULL) {
@@ -95,44 +95,9 @@ int main(int argc, char *argv[]) {
 
   fxMatrix->displayData(temp);
 
-//  rgb_matrix::DrawText(canvas, font,
-//                                  x, y + font.baseline(),
-//                                  color, outline_font ? NULL : &bg_color,
-//                                  temp.c_str(), letter_spacing);
-
-  while (!interrupt_received) { }
-
-//  while (!interrupt_received) {
-//    offscreen_canvas->Clear(); // clear canvas
-//
-//    if (outline_font) {
-      // The outline font, we need to write with a negative (-2) text-spacing,
-      // as we want to have the same letter pitch as the regular text that
-      // we then write on top.
-//      rgb_matrix::DrawText(offscreen_canvas, *outline_font,
-//                           x - 1, y + font.baseline(),
-//                           outline_color, &bg_color,
-//                           line.c_str(), letter_spacing - 2);
-//    }
-
-    // length = holds how many pixels our text takes up
-//    length = rgb_matrix::DrawText(offscreen_canvas, font,
-//                                  x, y + font.baseline(),
-//                                  color, outline_font ? NULL : &bg_color,
-//                                  line.c_str(), letter_spacing);
-
-//    if (--y + font.baseline() < 0) {
-//      y = y_orig;
-//      if (loops > 0) --loops;
-//    }
-
-//    usleep(200000);
-    // Swap the offscreen_canvas with canvas on vsync, avoids flickering
-//    offscreen_canvas = canvas->SwapOnVSync(offscreen_canvas);
-//  }
-
-  // Finished. Shut down the RGB matrix.
-  
+  while (!interrupt_received) { 
+    usleep(200000);
+  }
 
   delete fxMatrix;
 

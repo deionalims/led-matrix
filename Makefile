@@ -3,13 +3,13 @@ CXXFLAGS=$(CFLAGS)
 OBJECTS=main.o
 BINARIES=matrix-project
 
-RGB_LIB_DISTRIBUTION=/home/pi/Projects/rpi-rgb-led-matrix
+RGB_LIB_DISTRIBUTION=./lib/rpi-rgb-led-matrix
 RGB_INCDIR=$(RGB_LIB_DISTRIBUTION)/include
 RGB_LIBDIR=$(RGB_LIB_DISTRIBUTION)/lib
 RGB_LIBRARY_NAME=rgbmatrix
 RGB_LIBRARY=$(RGB_LIBDIR)/lib$(RGB_LIBRARY_NAME).a
 
-RAPIDJSON_INCDIR=/home/pi/Projects/rapidjson/include
+RAPIDJSON_INCDIR=./lib/rapidjson/include
 
 LDFLAGS+=-L$(RGB_LIBDIR) -l$(RGB_LIBRARY_NAME) -lrt -lm -lpthread -lcurl
 

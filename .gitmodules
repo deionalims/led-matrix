@@ -1,0 +1,6 @@
+[submodule "lib/rpi-rgb-led-matrix"]
+	path = lib/rpi-rgb-led-matrix
+	url = https://github.com/hzeller/rpi-rgb-led-matrix.git
+[submodule "lib/rapidjson"]
+	path = lib/rapidjson
+	url = https://github.com/Tencent/rapidjson.git
