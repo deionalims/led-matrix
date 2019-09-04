@@ -30,7 +30,7 @@ static size_t writeFunction(void *ptr, size_t size, size_t nmemb, std::string* d
     return size * nmemb;
 }
 
-static const char* request_domoticz(string id) {
+static string request_domoticz(string id) {
   auto curl = curl_easy_init();
   if (curl) {
     cout << "Requesting Domoticz" << endl;
@@ -47,21 +47,21 @@ static const char* request_domoticz(string id) {
     curl_easy_cleanup(curl);
     curl = NULL;
 
-    return response_string.c_str();
+    return response_string;
   }
-  cerr << "Error initializing curl for Netatmo" << endl;
+  cerr << "Error initializing curl" << endl;
   return "Error";
 }
 
-static const char* request_netatmo() {
+static string request_netatmo() {
   return request_domoticz("2");
 }
 
-static const char* request_linky() {
+static string request_linky() {
   return request_domoticz("5");
 }
 
-static const char* request_open_weather_map() {
+static string request_open_weather_map() {
   return request_domoticz("6");
 }
 
@@ -73,7 +73,7 @@ static string parse_data(const char* json) {
   } else {
     const Value& result = document["result"][0];
     auto m = result.FindMember("Data");
-    return m->value.GetString();;
+    return m->value.GetString();
   }
 }
 
@@ -86,17 +86,23 @@ int main(int argc, char *argv[]) {
 
   cout << "CTRL-C for exit" << endl;
 
-  const char* json = request_netatmo();;
-  if (json == NULL) {
-    return 0;
-  }
-
-  string temp = parse_data(json);
-
-  fxMatrix->displayData(temp);
-
   while (!interrupt_received) { 
-    usleep(200000);
+
+    string jsonNetatmo = request_netatmo();
+    string temp = parse_data(jsonNetatmo.c_str());
+    fxMatrix->drawNetatmo(temp);
+
+    string jsonOWM = request_open_weather_map();
+    string tempOWM = parse_data(jsonOWM.c_str());
+    fxMatrix->drawOWM(tempOWM);
+   
+    string jsonLinky = request_linky();
+    string linky = parse_data(jsonLinky.c_str());
+    fxMatrix->drawLinky(linky);
+
+    fxMatrix->displayData();
+
+    usleep(10000000);
   }
 
   delete fxMatrix;

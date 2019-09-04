@@ -2,7 +2,7 @@
 #include "graphics.h"
 #include <iostream>
 
-#define FONT_PATH "/home/pi/Projects/rpi-rgb-led-matrix/fonts/5x7.bdf"
+#define FONT_PATH "./lib/rpi-rgb-led-matrix/fonts/5x7.bdf"
 
 using namespace rgb_matrix;
 
@@ -39,10 +39,30 @@ class FXMatrix {
       delete canvas;
     }
 
-  void displayData(std::string data) {
-    rgb_matrix::DrawText(canvas, font, 0, 0 + font.baseline(), color, &bgColor, data.c_str(), 0);
+  void drawNetatmo(std::string data) {
+    int x = (canvas->width() / 4) - 15;
+    rgb_matrix::DrawText(offscreen_canvas, font, x, 0 + font.baseline(), color, &bgColor, data.c_str(), 0);
   }
 
+  void drawOWM(std::string data) {
+    std::size_t pos = data.find(",");
+    std::string temp = data.substr(0, pos);
+
+    int x = (canvas->width() / 4) * 3 - 15;
+    rgb_matrix::DrawText(offscreen_canvas, font, x, 0 + font.baseline(), color, &bgColor, temp.c_str(), 0);
+  }
+
+  void drawLinky(std::string data) {
+    int y = canvas->height() / 2 + 3;
+    rgb_matrix::DrawText(offscreen_canvas, font, 0, y + font.baseline(), color, &bgColor, data.c_str(), 0);
+  }
+
+  void displayData() {
+    rgb_matrix::DrawLine(offscreen_canvas, 0, canvas->height() / 2, canvas->width(), canvas->height() / 2, Color(0, 0, 255));
+    rgb_matrix::DrawLine(offscreen_canvas, canvas->width() / 2, 0, canvas->width() / 2, canvas->height() / 2, Color(0, 0, 255));
+
+    offscreen_canvas = canvas->SwapOnVSync(offscreen_canvas);
+  }
 
   private:
     float home_temperature = 0;
