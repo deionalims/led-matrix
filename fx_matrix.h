@@ -1,10 +1,15 @@
 #include "led-matrix.h"
 #include "graphics.h"
+
 #include <iostream>
+#include <Magick++.h>
 
 #define FONT_PATH "./lib/rpi-rgb-led-matrix/fonts/5x7.bdf"
+#define HOME_IMG "./imgs/home.png"
+#define WEATHER_IMG "./imgs/10d.png"
 
 using namespace rgb_matrix;
+using namespace Magick;
 
 class FXMatrix {
   public:
@@ -30,8 +35,10 @@ class FXMatrix {
         std::cout << "Couldn't load font " << FONT_PATH << std::endl;
       }
 
-      color = Color(255, 255, 0);
-      bgColor = Color(0, 0, 0);
+      color = rgb_matrix::Color(255, 255, 0);
+      bgColor = rgb_matrix::Color(0, 0, 0);
+
+      Magick::InitializeMagick(NULL);
     }
 
     ~FXMatrix() {
@@ -40,27 +47,46 @@ class FXMatrix {
     }
 
   void drawNetatmo(std::string data) {
-    int x = (canvas->width() / 4) - 15;
-    rgb_matrix::DrawText(offscreen_canvas, font, x, 0 + font.baseline(), color, &bgColor, data.c_str(), 0);
+    int x = 11;
+    rgb_matrix::DrawText(offscreen_canvas, font, x, 10, color, &bgColor, data.c_str(), 0);
+
+    Image home(HOME_IMG);
+    for (int i = 0; i < 10; ++i) {
+      for (int j = 0; j < 10; ++j) {
+        ColorRGB rgb(home.pixelColor(i, j));
+        offscreen_canvas->SetPixel(i, j, ScaleQuantumToChar(rgb.redQuantum()),
+                                   ScaleQuantumToChar(rgb.greenQuantum()),
+                                   ScaleQuantumToChar(rgb.blueQuantum()));
+      }
+    }
   }
 
   void drawOWM(std::string data) {
     std::size_t pos = data.find(",");
     std::string temp = data.substr(0, pos);
 
-    int x = (canvas->width() / 4) * 3 - 15;
-    rgb_matrix::DrawText(offscreen_canvas, font, x, 0 + font.baseline(), color, &bgColor, temp.c_str(), 0);
+    int x = 11;
+    int y = canvas->height() / 2 + font.baseline() / 2;;
+    rgb_matrix::DrawText(offscreen_canvas, font, x, y, color, &bgColor, temp.c_str(), 0);
+
+    Image weather(WEATHER_IMG);
+    for (int i = 0; i < 10; ++i) {
+      for (int j = 0; j < 10; ++j) {
+        ColorRGB rgb(weather.pixelColor(i, j));
+        offscreen_canvas->SetPixel(i, j + y, ScaleQuantumToChar(rgb.redQuantum()),
+                                   ScaleQuantumToChar(rgb.greenQuantum()),
+                                   ScaleQuantumToChar(rgb.blueQuantum()));
+      }
+    }
   }
 
   void drawLinky(std::string data) {
-    int y = canvas->height() / 2 + 3;
-    rgb_matrix::DrawText(offscreen_canvas, font, 0, y + font.baseline(), color, &bgColor, data.c_str(), 0);
+    int x = 11;
+    int y = 32;
+    rgb_matrix::DrawText(offscreen_canvas, font, x, y, color, &bgColor, data.c_str(), 0);
   }
 
   void displayData() {
-    rgb_matrix::DrawLine(offscreen_canvas, 0, canvas->height() / 2, canvas->width(), canvas->height() / 2, Color(0, 0, 255));
-    rgb_matrix::DrawLine(offscreen_canvas, canvas->width() / 2, 0, canvas->width() / 2, canvas->height() / 2, Color(0, 0, 255));
-
     offscreen_canvas = canvas->SwapOnVSync(offscreen_canvas);
   }
 
@@ -72,10 +98,10 @@ class FXMatrix {
     RGBMatrix* canvas;
     FrameCanvas* offscreen_canvas;
     Font font;
-    Color color;
-    Color bgColor;
+    rgb_matrix::Color color;
+    rgb_matrix::Color bgColor;
 
-    bool parseColor(Color *c, const char *str) {
+    bool parseColor(rgb_matrix::Color *c, const char *str) {
       return sscanf(str, "%hhu,%hhu,%hhu", &c->r, &c->g, &c->b) == 3;
     }
 };

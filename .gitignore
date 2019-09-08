@@ -1,3 +1,4 @@
 *.o
-./matrix-project
+matrix-project
+*.save
 

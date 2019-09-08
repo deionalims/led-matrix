@@ -33,8 +33,6 @@ static size_t writeFunction(void *ptr, size_t size, size_t nmemb, std::string* d
 static string request_domoticz(string id) {
   auto curl = curl_easy_init();
   if (curl) {
-    cout << "Requesting Domoticz" << endl;
-
     string url("http://192.168.86.125:8081/json.htm?type=devices&rid=");
     url.append(id);
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
