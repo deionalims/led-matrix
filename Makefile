@@ -24,7 +24,7 @@ matrix-project : main.o  $(RGB_LIBRARY)
 	$(CXX) $< -o $@ $(LDFLAGS) $(MAGICK_LDFLAGS)
 
 %.o : %.cc
-	$(CXX) -I$(RGB_INCDIR) $(CXXFLAGS) $(MAGICK_CXXFLAGS) -I$(RAPIDJSON_INCDIR) -I.  -c -o $@ $<
+	$(CXX) -I$(RGB_INCDIR) -I$(RGB_LIBDIR) $(CXXFLAGS) $(MAGICK_CXXFLAGS) -I$(RAPIDJSON_INCDIR) -I.  -c -o $@ $<
 
 clean:
 	rm -f $(OBJECTS) $(BINARIES)

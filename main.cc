@@ -20,11 +20,6 @@ using namespace rgb_matrix;
 using namespace rapidjson;
 using namespace std;
 
-volatile bool interrupt_received = false;
-static void InterruptHandler(int signo) {
-  interrupt_received = true;
-}
-
 static size_t writeFunction(void *ptr, size_t size, size_t nmemb, std::string* data) {
     data->append((char*) ptr, size * nmemb);
     return size * nmemb;
@@ -79,30 +74,11 @@ int main(int argc, char *argv[]) {
 
   FXMatrix *fxMatrix = new FXMatrix();
 
-  signal(SIGTERM, InterruptHandler);
-  signal(SIGINT, InterruptHandler);
-
   cout << "CTRL-C for exit" << endl;
 
-  while (!interrupt_received) { 
+  fxMatrix->launchCycle();
 
-    string jsonNetatmo = request_netatmo();
-    string temp = parse_data(jsonNetatmo.c_str());
-    fxMatrix->drawNetatmo(temp);
-
-    string jsonOWM = request_open_weather_map();
-    string tempOWM = parse_data(jsonOWM.c_str());
-    fxMatrix->drawOWM(tempOWM);
-   
-    string jsonLinky = request_linky();
-    string linky = parse_data(jsonLinky.c_str());
-    fxMatrix->drawLinky(linky);
-
-    fxMatrix->displayData();
-
-    usleep(10000000);
-  }
-
+  cout << "Deleting fxMatrix..." << endl;
   delete fxMatrix;
 
   return 0;
