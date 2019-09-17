@@ -26,6 +26,14 @@
 #define HOME_IMG "./imgs/home.png"
 #define WEATHER_IMG "./imgs/10d.png"
 #define MARIO "./imgs/mario.gif"
+#define SAMUS "./imgs/samus.gif"
+#define INK "./imgs/ink.gif"
+#define PACMAN "./imgs/pacman.gif"
+#define ZOMBIE "./imgs/zombie.gif"
+#define METALSLUG "./imgs/metalslug.gif"
+#define METALSLUG2 "./imgs/metalslug2.gif"
+#define YOSHI "./imgs/yoshi.gif"
+#define MATRIX "./imgs/matrix.gif"
 
 using rgb_matrix::GPIO;
 using rgb_matrix::Canvas;
@@ -48,7 +56,7 @@ class FXMatrix {
       options.cols = 64;
       options.chain_length = 1;
       options.parallel = 1;
-      options.brightness = 100;
+      options.brightness = 50;
       options.pwm_bits = 11;
 
       rgb_matrix::RuntimeOptions runtimeOptions;
@@ -68,7 +76,16 @@ class FXMatrix {
 
       Magick::InitializeMagick(NULL);
 
-      LoadMarioImageAndStoreInStream();
+      LoadClockImageAndStoreInStream(new rgb_matrix::MemStreamIO(), MARIO);
+      LoadClockImageAndStoreInStream(new rgb_matrix::MemStreamIO(), SAMUS);
+      LoadClockImageAndStoreInStream(new rgb_matrix::MemStreamIO(), PACMAN);
+      LoadClockImageAndStoreInStream(new rgb_matrix::MemStreamIO(), ZOMBIE);
+      LoadClockImageAndStoreInStream(new rgb_matrix::MemStreamIO(), METALSLUG);
+      LoadClockImageAndStoreInStream(new rgb_matrix::MemStreamIO(), METALSLUG2);
+      LoadClockImageAndStoreInStream(new rgb_matrix::MemStreamIO(), YOSHI);
+
+      LoadCenterImageAndStoreInStream(new rgb_matrix::MemStreamIO(), INK);
+      LoadCenterImageAndStoreInStream(new rgb_matrix::MemStreamIO(), MATRIX);
 
       signal(SIGTERM, InterruptHandler);
       signal(SIGINT, InterruptHandler);
@@ -80,8 +97,10 @@ class FXMatrix {
     }
 
   void launchCycle() {
+    size_t idx = image_streams.size() - 1;
     while(!interrupt_received) {
-      DisplayClockAnimation(mario_stream);
+      DisplayClockAnimation(image_streams[idx]);
+      idx = (idx >= image_streams.size() - 1) ? 0 : idx + 1;
     }
   }
 
@@ -129,10 +148,22 @@ class FXMatrix {
     offscreen_canvas = canvas->SwapOnVSync(offscreen_canvas);
   }
 
+  void setHomeTemperature(float temperature) {
+    _home_temperature = temperature;
+  }
+
+  void setTemperature(float temperature){
+    _temperature = temperature;
+  }
+
+  void setEnergy(std::string energy) {
+    _energy = energy;
+  }
+
   private:
-    float home_temperature = 0;
-    float temperature = 0;
-    float energy = 0;
+    float _home_temperature = 0;
+    float _temperature = 0;
+    std::string _energy = 0;
 
     RGBMatrix* canvas;
     FrameCanvas* offscreen_canvas;
@@ -140,7 +171,8 @@ class FXMatrix {
     rgb_matrix::Color color;
     rgb_matrix::Color bgColor;
 
-    rgb_matrix::StreamIO *mario_stream = new rgb_matrix::MemStreamIO();
+
+    std::vector<rgb_matrix::StreamIO*> image_streams;
 
     bool parseColor(rgb_matrix::Color *c, const char *str) {
       return sscanf(str, "%hhu,%hhu,%hhu", &c->r, &c->g, &c->b) == 3;
@@ -224,12 +256,12 @@ class FXMatrix {
       return true;
     }
 
-    void LoadMarioImageAndStoreInStream() {
+    void LoadClockImageAndStoreInStream(rgb_matrix::StreamIO* stream, const char* filename) {
       std::vector<Magick::Image> image_sequence;
       std::string err_msg;
-      if (LoadImageAndScale(MARIO, canvas->width(), canvas->height(),
+      if (LoadImageAndScale(filename, canvas->width(), canvas->height(),
                             false, true, &image_sequence, &err_msg)) {
-        rgb_matrix::StreamWriter out(mario_stream);
+        rgb_matrix::StreamWriter out(stream);
         const Magick::Image &img_tmp = image_sequence[0];
         int x = 0 - img_tmp.columns();
         size_t img_idx = 0;
@@ -238,6 +270,22 @@ class FXMatrix {
           StoreInStream(img, 100 * 1000, x, 0, offscreen_canvas, &out);
           x++;
           img_idx = img_idx == image_sequence.size() ? 0 : img_idx;
+        }
+
+        image_streams.push_back(stream);
+      }
+    }
+
+    void LoadCenterImageAndStoreInStream(rgb_matrix::StreamIO* stream, const char* filename) {
+      std::vector<Magick::Image> image_sequence;
+      std::string err_msg;
+      if (LoadImageAndScale(filename, canvas->width(), canvas->height(),
+                            false, true, &image_sequence, &err_msg)) {
+        rgb_matrix::StreamWriter out(stream);
+        for (size_t i = 0; i < image_sequence.size(); ++i) {
+          const Magick::Image &img = image_sequence[i];
+          int x = (canvas->width() / 2) - (img.columns() / 2);
+          StoreInStream(img, 100 * 1000, x, 0, offscreen_canvas, &out);
         }
       }
     }
@@ -271,12 +319,17 @@ class FXMatrix {
           x = x_anchor;
 
         offscreen_canvas = canvas->SwapOnVSync(offscreen_canvas);
-        usleep(75000);
+        usleep(50000);
       }
 
-      usleep(10000000);
+      usleep(1000000);
 
-
+      // rgb_matrix::StreamReader ink_reader(ink_stream);
+      // rgb_matrix::DrawText(offscreen_canvas, font, x, y_anchor, color, &bgColor, text_buffer, 0);
+      // while (ink_reader.GetNext(offscreen_canvas, 0)) {
+      //   offscreen_canvas = canvas->SwapOnVSync(offscreen_canvas);
+      //   usleep(100000);
+      // }
       while (y_anchor > -2) {
         offscreen_canvas->Clear();
         rgb_matrix::DrawText(offscreen_canvas, font, x, y_anchor, color, &bgColor, text_buffer, 0);
@@ -284,7 +337,7 @@ class FXMatrix {
         y_anchor--;
 
         offscreen_canvas = canvas->SwapOnVSync(offscreen_canvas);
-        usleep(75000);
+        usleep(50000);
       }
 
         offscreen_canvas->Clear();
